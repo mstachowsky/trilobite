@@ -85,7 +85,6 @@ def extract_rubrics(root):
 def create_extract_queries(root):
     queries = extract_queries(root)
     extract_query_list = []
-    print(root.find(".//preamble_extract"))
     if root.find(".//preamble_extract") is not None:
         preamble_extract = root.find(".//preamble_extract").text.strip()
         start_string = "<s>[INST] <<SYS>>" + preamble_extract
@@ -193,7 +192,8 @@ def extract_and_analyze_from_docs(input_filename,pipeline,tokenizer,output_filen
             )
             for seq in sequences:
                 model_out = seq['generated_text'].split("[/INST]")[1].strip()
-                analysis = analysis + "=====PAGE " + str(page_num) + "\n" + model_out + "\n\n"
+                if "none present" not in model_out:
+                    analysis = analysis + "=====PAGE " + str(page_num) + "\n" + model_out + "\n\n"
 
             print("Processed page......", str(page_num))
         txtname = input_filename.split(".")[0] + "_processed.txt"
@@ -240,7 +240,8 @@ def extract_and_analyze_from_text(input_filename,pipeline,tokenizer,output_filen
             )
             for seq in sequences:
                 model_out = seq['generated_text'].split("[/INST]")[1].strip()
-                analysis = analysis + "=====PAGE " + str(page_num) + "\n" + model_out + "\n\n"
+                if "none present" not in model_out:
+                    analysis = analysis + "=====PAGE " + str(page_num) + "\n" + model_out + "\n\n"
                 #print("========",paper,"\n",model_out,"\n\n")
             print("Processed page......", str(page_num))
         txtname = input_filename.split(".")[0] + "_processed.txt"
@@ -255,7 +256,7 @@ def extract_and_analyze_from_text(input_filename,pipeline,tokenizer,output_filen
 
 #This is an absolute path, but it avoids us having to use a cached file
 model_path = "D:\models\llama2_13B_July27_2023\llama2_13b\snapshots\july27"
-
+model_path_7B = "D:/models/llama2_7B_July28_2023"
 def trilobite(xml_file,model="meta-llama/Llama-2-13b-chat-hf"):
         
     #Load the XML    
@@ -323,6 +324,15 @@ def trilobite(xml_file,model="meta-llama/Llama-2-13b-chat-hf"):
     #evaluate
     evaluate_q = create_evaluate_queries(root)
     if evaluate_q != []:
+        #load the 7B model, which is generally better at evaluation
+        model = "meta-llama/Llama-2-7b-chat-hf"
+        tokenizer = AutoTokenizer.from_pretrained(model)
+        pipeline = transformers.pipeline(
+            "text-generation",
+            model=model,
+            torch_dtype=torch.float16,
+            device_map="auto",
+        )
         for file in os.listdir(os.path.join(rootdir,eval_dir)):
             for query in evaluate_q:
                 try:
