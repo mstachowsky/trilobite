@@ -85,7 +85,8 @@ def extract_rubrics(root):
 def create_extract_queries(root):
     queries = extract_queries(root)
     extract_query_list = []
-    if root.find(".//preamble_extract"):
+    print(root.find(".//preamble_extract"))
+    if root.find(".//preamble_extract") is not None:
         preamble_extract = root.find(".//preamble_extract").text.strip()
         start_string = "<s>[INST] <<SYS>>" + preamble_extract
         end_string = """ The text is:
@@ -94,7 +95,7 @@ def create_extract_queries(root):
         
         qu = start_string + " " + end_string
         extract_query_list.append(qu)
-        
+        print(qu)
         """
         for query in queries:
             qu = start_string + " " + query + " " + end_string
@@ -106,7 +107,7 @@ def create_extract_queries(root):
 def create_summarize_queries(root):
     queries = extract_queries(root)
     summary_query_list = []
-    if root.find(".//preamble_summarize"):
+    if root.find(".//preamble_summarize")is not None:
         preamble_summarize = root.find(".//preamble_summarize").text.strip()
         start_string = "<s>[INST] <<SYS>>" + preamble_summarize
         end_string = """The text is: 
@@ -126,7 +127,7 @@ def create_summarize_queries(root):
 def create_finalize_queries(root):
     queries = extract_queries(root)
     finalize_query_list = []
-    if root.find(".//preamble_finalize"):
+    if root.find(".//preamble_finalize")is not None:
         preamble_finalize = root.find(".//preamble_finalize").text.strip()
         start_string = "<s>[INST] <<SYS>>" + preamble_finalize
         end_string = """ The text is: 
@@ -146,7 +147,7 @@ def create_evaluate_queries(root):
     rubrics = extract_rubrics(root)
 
     rubric_query_list = []
-    if root.find(".//preamble_evaluate"):
+    if root.find(".//preamble_evaluate")is not None:
         preamble_finalize = root.find(".//preamble_evaluate").text.strip()
         start_string = "<s>[INST] <<SYS>>" + preamble_finalize
         mid_string = """The following arer the classes in which you should classify the student work:
@@ -273,7 +274,6 @@ def trilobite(xml_file,model="meta-llama/Llama-2-13b-chat-hf"):
     #It exists, so we are good to go
     #create or clean the directories
     setup_directories(root)
-    
     #load the model
     tokenizer = AutoTokenizer.from_pretrained(model)
     pipeline = transformers.pipeline(
@@ -285,6 +285,7 @@ def trilobite(xml_file,model="meta-llama/Llama-2-13b-chat-hf"):
     
     #extract
     extract_q = create_extract_queries(root)
+    print(extract_q)
     eval_dir = "extract"
     if extract_q != []: #TBH, this shouldn't be possible, otherwise all other stuff fails
         for file in os.listdir(raw):
